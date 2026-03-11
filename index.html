@@ -617,10 +617,12 @@ function condBadge(c = '') {
 }
 
 function waHref(p) {
+  const productURL = window.location.origin + window.location.pathname + "?product=" + encodeURIComponent(p.id);
   return `https://wa.me/${WA}?text=` + encodeURIComponent(
     `Hello! I'm interested in the *${p.part_name}* for *${p.car_make} ${p.car_model}*` +
     (p.year_range ? ` (${p.year_range})` : '') +
-    `. Price: OMR ${Number(p.price).toFixed(3)}. Is it still available?`
+    `.\nPrice: OMR ${Number(p.price).toFixed(3)}.` +
+    `\n\nProduct Link:\n${productURL}\n\nIs it still available?`
   );
 }
 
@@ -650,10 +652,9 @@ function buildCarousel(images) {
 
 function cardHTML(p) {
   const imgSource = p.images ?? (p.image_url ? [p.image_url] : []);
-  const safeName = (p.part_name || '').replace(/'/g, "\\'");
 
   return `
-    <article class="card">
+    <article class="card" data-id="${p.id}">
       <div class="car-badges">
         <span class="bdg bdg-oem">OEM Quality</span>
         ${condBadge(p.condition)}
@@ -673,7 +674,7 @@ function cardHTML(p) {
           <a class="cta-wa" href="${waHref(p)}" target="_blank" rel="noopener noreferrer">
             ${WA_SVG}<span>Order via WhatsApp</span>
           </a>
-          <button class="cta-share" onclick="sharePart('${safeName}', ${p.price})" aria-label="Share this part">
+          <button class="cta-share" onclick="shareProduct('${p.id}')" aria-label="Share this part">
             ${SHARE_SVG}
           </button>
         </div>
@@ -685,20 +686,20 @@ function cardHTML(p) {
 /* ════════════════════════════════════════
    SHARE LOGIC
 ════════════════════════════════════════ */
-async function sharePart(name, price) {
-  const shareData = {
-    title: 'Jasur Al Naseem Trading',
-    text: `Check out this ${name} for OMR ${Number(price).toFixed(3)} at Jasur Al Naseem Trading.`,
-    url: window.location.href.split('?')[0] // Clean URL
-  };
-  
+function shareProduct(id) {
+  const p = parts.find(x => x.id === id);
+  if (!p) return;
+  const url = window.location.origin + window.location.pathname + "?product=" + encodeURIComponent(p.id);
+
   if (navigator.share) {
-    try { await navigator.share(shareData); } 
-    catch (err) { console.log('Share canceled'); }
+    navigator.share({
+      title: p.part_name,
+      text: `${p.part_name} for ${p.car_make} ${p.car_model}`,
+      url: url
+    }).catch(err => console.log('Share canceled'));
   } else {
-    // Fallback if browser doesn't support Native Share
-    navigator.clipboard.writeText(`${shareData.text} ${shareData.url}`);
-    alert('Link copied to clipboard!');
+    navigator.clipboard.writeText(url);
+    alert("Product link copied!");
   }
 }
 
@@ -787,6 +788,23 @@ document.getElementById('q').addEventListener('input', () => {
 });
 
 fetchParts();
+
+/* ════════════════════════════════════════
+   HIGHLIGHT PRODUCT UX
+════════════════════════════════════════ */
+const params = new URLSearchParams(window.location.search);
+const highlightID = params.get("product");
+
+if(highlightID){
+  setTimeout(()=>{
+    const el = document.querySelector(`[data-id="${highlightID}"]`);
+    if(el){
+      el.scrollIntoView({behavior:"smooth", block:"center"});
+      el.style.boxShadow="0 0 0 2px #22c55e";
+    }
+  },800);
+}
+
 </script>
 </body>
 </html>
