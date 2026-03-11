@@ -308,6 +308,44 @@
     .cta-share:hover { background:var(--hover-bg); color:var(--tx1); border-color:var(--bd2); transform:translateY(-1px); }
     .cta-share:active { transform:scale(.94); }
 
+    /* ════════════════════════════════════════
+   SHARE LOGIC (100% FIXED)
+════════════════════════════════════════ */
+function shareProduct(id) {
+  // FIX: Force convert both to String so Supabase Number ID matches HTML String ID
+  const p = parts.find(x => String(x.id) === String(id));
+  
+  if (!p) {
+    console.error("Product not found with ID:", id);
+    return;
+  }
+
+  let baseOrigin = window.location.origin;
+  if (baseOrigin === "null" || !baseOrigin) baseOrigin = "https://jasur-al-naseem.vercel.app";
+  const url = baseOrigin + window.location.pathname + "?product=" + encodeURIComponent(p.id);
+
+  if (navigator.share) {
+    navigator.share({
+      title: p.part_name,
+      text: `${p.part_name} for ${p.car_make} ${p.car_model}`,
+      url: url
+    }).catch(err => console.log('Share canceled'));
+  } else {
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(url);
+      alert("Product link copied!");
+    } else {
+      const textArea = document.createElement("textarea");
+      textArea.value = url;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+      alert("Product link copied (Local Mode)!");
+    }
+  }
+}
+
     /* ─── DEMO NOTICE & SKELETON ─── */
     .demo-notice {
       grid-column:1/-1; display:flex; align-items:center; gap:10px;
