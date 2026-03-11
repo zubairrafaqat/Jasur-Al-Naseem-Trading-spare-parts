@@ -172,13 +172,23 @@
     .card:active { transform:translateY(-2px) !important; }
     .card.exit { opacity:0 !important; transform:scale(.93) !important; transition:opacity .14s,transform .14s !important; }
 
+    /* Smart Highlight Animation for Shared Links */
+    .card.highlight-target {
+      animation: flash-green 3s ease-out forwards;
+    }
+    @keyframes flash-green {
+      0% { box-shadow: 0 0 0 3px var(--green-hi); transform: scale(1.02); }
+      15% { box-shadow: 0 0 20px 5px rgba(34,197,94,0.4); transform: scale(1.02); }
+      100% { box-shadow: 0 0 0 0px rgba(34,197,94,0); transform: scale(1); }
+    }
+
     /* ═══════════════════════════════════════════
        IMAGE CAROUSEL
     ═══════════════════════════════════════════ */
     .carousel {
       position:relative; aspect-ratio:16/11; overflow:hidden;
       background:var(--surface); flex-shrink:0;
-      isolation:isolate;
+      isolation:isolate; cursor:pointer;
     }
     .car-track {
       display:flex; height:100%;
@@ -273,9 +283,7 @@
     .price-cur { font-size:11px; font-weight:500; color:var(--tx3); }
 
     /* ─── ACTION ROW (WhatsApp + Share) ─── */
-    .cta-row {
-      display:flex; gap:8px; margin-top:13px;
-    }
+    .cta-row { display:flex; gap:8px; margin-top:13px; }
     .cta-wa {
       flex:1; padding:11px 16px;
       display:flex; align-items:center; justify-content:center; gap:8px;
@@ -348,6 +356,43 @@
     }
     .soc:hover { background:var(--hover-bg); color:var(--tx1); border-color:var(--bd1); transform:translateY(-2px); }
     .copyright { margin-top:22px; font-size:11px; color:var(--tx3); }
+
+    /* ─── NEW: APPLE-STYLE IMAGE LIGHTBOX ─── */
+    .lightbox {
+      position:fixed; inset:0; z-index:99999;
+      background:rgba(0,0,0,0.85); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
+      display:flex; align-items:center; justify-content:center;
+      opacity:0; pointer-events:none;
+      transition:opacity .3s var(--expo);
+    }
+    .lightbox.active { opacity:1; pointer-events:auto; cursor:zoom-out; }
+    .lightbox img {
+      max-width:94vw; max-height:90vh; object-fit:contain;
+      transform:scale(0.9); transition:transform .4s var(--spring);
+      border-radius:12px; box-shadow:0 25px 50px -12px rgba(0,0,0,0.7);
+    }
+    .lightbox.active img { transform:scale(1); }
+    .lb-close {
+      position:absolute; top:20px; right:20px;
+      width:40px; height:40px; border-radius:50%; background:rgba(255,255,255,0.1);
+      color:#fff; display:flex; align-items:center; justify-content:center;
+      cursor:pointer; transition:background .2s, transform .2s var(--spring);
+    }
+    .lb-close:hover { background:rgba(255,255,255,0.2); transform:scale(1.1); }
+    .lb-close svg { width:20px; height:20px; }
+
+    /* ─── NEW: FLOATING WHATSAPP ─── */
+    .float-wa {
+      position:fixed; bottom:25px; right:25px; z-index:900;
+      width:56px; height:56px; border-radius:50%;
+      background:var(--green-hi); color:#fff;
+      display:flex; align-items:center; justify-content:center;
+      box-shadow:0 10px 25px rgba(22,163,74,0.35);
+      transition:transform .3s var(--spring), box-shadow .3s;
+    }
+    .float-wa:hover { transform:scale(1.1) translateY(-4px); box-shadow:0 15px 35px rgba(22,163,74,0.45); }
+    .float-wa:active { transform:scale(.95); }
+    .float-wa svg { width:28px; height:28px; }
 
     @media(prefers-reduced-motion:reduce) {
       *,*::before,*::after { animation-duration:.01ms !important; transition-duration:.01ms !important; }
@@ -445,6 +490,15 @@
   </div>
 </footer>
 
+<div id="lightbox" class="lightbox" onclick="closeLightbox()">
+  <div class="lb-close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></div>
+  <img id="lb-img" src="" alt="Zoomed view">
+</div>
+
+<a href="https://wa.me/96894918485?text=Hello%20Jasur%20Al%20Naseem%20Trading,%20I%20have%20an%20inquiry." class="float-wa" target="_blank" rel="noopener noreferrer" aria-label="Chat on WhatsApp">
+  <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.890-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/></svg>
+</a>
+
 <script>
 /* ════════════════════════════════════════
    CONFIG
@@ -497,7 +551,20 @@ let filter = 'all';
 let isDemo = false;
 
 /* ════════════════════════════════════════
-   CAROUSEL CLASS
+   LIGHTBOX ZOOM LOGIC
+════════════════════════════════════════ */
+function openLightbox(src) {
+  const lb = document.getElementById('lightbox');
+  const img = document.getElementById('lb-img');
+  img.src = src;
+  lb.classList.add('active');
+}
+function closeLightbox() {
+  document.getElementById('lightbox').classList.remove('active');
+}
+
+/* ════════════════════════════════════════
+   CAROUSEL CLASS (Includes Tap-to-Zoom)
 ════════════════════════════════════════ */
 class Carousel {
   constructor(el) {
@@ -514,6 +581,8 @@ class Carousel {
     if (this.total <= 1) {
       if (this.prev) this.prev.remove();
       if (this.next) this.next.remove();
+      // Even if 1 image, allow tap to zoom
+      this._bindSwipeOrTap();
       return;
     }
 
@@ -534,11 +603,7 @@ class Carousel {
     if (this.next) this.next.classList.toggle('hidden', this.cur === this.total - 1);
   }
 
-  _bind() {
-    this.prev?.addEventListener('click', e => { e.stopPropagation(); e.preventDefault(); this.go(this.cur - 1); });
-    this.next?.addEventListener('click', e => { e.stopPropagation(); e.preventDefault(); this.go(this.cur + 1); });
-    this.dots.forEach((d, i) => d.addEventListener('click', e => { e.stopPropagation(); this.go(i); }));
-
+  _bindSwipeOrTap() {
     let startX = 0, startY = 0, isDragging = false;
     const onDown = e => {
       const t = e.touches?.[0] ?? e;
@@ -549,15 +614,30 @@ class Carousel {
       const t = e.changedTouches?.[0] ?? e;
       const dx = t.clientX - startX;
       const dy = t.clientY - startY;
+      
+      // Swipe detection
       if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 40) {
         e.preventDefault();
         this.go(dx < 0 ? this.cur + 1 : this.cur - 1);
+      } 
+      // Tap detection (Open Zoom)
+      else if (Math.abs(dx) < 10 && Math.abs(dy) < 10) {
+        const img = this.slides[this.cur].querySelector('img');
+        if(img) openLightbox(img.src);
       }
     };
     this.el.addEventListener('touchstart', onDown, { passive:true });
     this.el.addEventListener('touchend', onUp, { passive:false });
     this.el.addEventListener('mousedown', onDown);
     window.addEventListener('mouseup', onUp);
+  }
+
+  _bind() {
+    this.prev?.addEventListener('click', e => { e.stopPropagation(); e.preventDefault(); this.go(this.cur - 1); });
+    this.next?.addEventListener('click', e => { e.stopPropagation(); e.preventDefault(); this.go(this.cur + 1); });
+    this.dots.forEach((d, i) => d.addEventListener('click', e => { e.stopPropagation(); this.go(i); }));
+    
+    this._bindSwipeOrTap();
 
     this.el.setAttribute('tabindex', '0');
     this.el.addEventListener('keydown', e => {
@@ -617,10 +697,8 @@ function condBadge(c = '') {
 }
 
 function waHref(p) {
-  // FIX: Protect URL for local testing
   let baseOrigin = window.location.origin;
   if (baseOrigin === "null" || !baseOrigin) baseOrigin = "https://jasur-al-naseem.vercel.app";
-  
   const productURL = baseOrigin + window.location.pathname + "?product=" + encodeURIComponent(p.id);
   
   return `https://wa.me/${WA}?text=` + encodeURIComponent(
@@ -639,7 +717,8 @@ function buildCarousel(images) {
     </div>`;
   }
 
-  const slides = imgs.map(url => `<div class="car-slide"><img src="${url}" alt="Part image" loading="lazy"></div>`).join('');
+  // Fast LCP Load optimization included via decoding="async"
+  const slides = imgs.map(url => `<div class="car-slide"><img src="${url}" alt="Part image" loading="lazy" decoding="async"></div>`).join('');
   const dots = imgs.length > 1 ? `<div class="car-dots">${imgs.map((_, i) => `<div class="dot${i === 0 ? ' active' : ''}" data-i="${i}"></div>`).join('')}</div>` : '';
   const arrows = imgs.length > 1 ? `<button class="car-arrow car-arrow-prev hidden" aria-label="Previous image">${ARROW_L}</button><button class="car-arrow car-arrow-next" aria-label="Next image">${ARROW_R}</button>` : '';
   const counter = imgs.length > 1 ? `<div class="car-counter">1 / ${imgs.length}</div>` : '';
@@ -668,7 +747,7 @@ function cardHTML(p) {
       <div class="card-body">
         ${p.category ? `<div class="card-cat">${p.category}</div>` : ''}
         <div class="card-name">${p.part_name}</div>
-        <div class="card-make"><strong>${p.car_make}</strong> ${p.car_model}</div>
+        <div class="card-make"><strong>${p.car_make}</strong> ${p.car_model || ''}</div>
         ${p.year_range ? `<div class="card-yr">${p.year_range}</div>` : ''}
         <div class="price-row">
           <span class="price-val">${Number(p.price).toFixed(3)}</span>
@@ -683,7 +762,6 @@ function cardHTML(p) {
             ${SHARE_SVG}
           </button>
         </div>
-
       </div>
     </article>`;
 }
@@ -695,7 +773,6 @@ function shareProduct(id) {
   const p = parts.find(x => x.id === id);
   if (!p) return;
 
-  // FIX: Protect URL for local testing
   let baseOrigin = window.location.origin;
   if (baseOrigin === "null" || !baseOrigin) baseOrigin = "https://jasur-al-naseem.vercel.app";
   const url = baseOrigin + window.location.pathname + "?product=" + encodeURIComponent(p.id);
@@ -707,7 +784,6 @@ function shareProduct(id) {
       url: url
     }).catch(err => console.log('Share canceled'));
   } else {
-    // FIX: Professional Fallback (Works on Local PC too)
     if (navigator.clipboard && window.isSecureContext) {
       navigator.clipboard.writeText(url);
       alert("Product link copied!");
@@ -750,7 +826,7 @@ function renderGrid(withExit = false) {
     if (isDemo) {
       html += `<div class="demo-notice">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-        <span><strong>Demo preview</strong> — 3 sample cards. Deploy to Netlify/Vercel to load your live Supabase inventory.</span>
+        <span><strong>Demo preview</strong> — 3 sample cards. Deploy to Netlify/Vercel to load live Supabase inventory.</span>
       </div>`;
     }
     html += vis.map(cardHTML).join('');
@@ -765,7 +841,6 @@ function renderGrid(withExit = false) {
     grid.querySelectorAll('.carousel').forEach(el => new Carousel(el));
     observeCards();
     
-    // FIX: Highlight Check strictly runs after injection
     highlightProduct();
   };
 
@@ -824,7 +899,8 @@ function highlightProduct() {
       const el = document.querySelector(`[data-id="${highlightID}"]`);
       if(el){
         el.scrollIntoView({behavior:"smooth", block:"center"});
-        el.style.boxShadow="0 0 0 2px #22c55e";
+        // Use smart CSS animation class instead of infinite inline style
+        el.classList.add("highlight-target");
       }
     },800);
   }
