@@ -617,7 +617,12 @@ function condBadge(c = '') {
 }
 
 function waHref(p) {
-  const productURL = window.location.origin + window.location.pathname + "?product=" + encodeURIComponent(p.id);
+  // FIX: Protect URL for local testing
+  let baseOrigin = window.location.origin;
+  if (baseOrigin === "null" || !baseOrigin) baseOrigin = "https://jasur-al-naseem.vercel.app";
+  
+  const productURL = baseOrigin + window.location.pathname + "?product=" + encodeURIComponent(p.id);
+  
   return `https://wa.me/${WA}?text=` + encodeURIComponent(
     `Hello! I'm interested in the *${p.part_name}* for *${p.car_make} ${p.car_model}*` +
     (p.year_range ? ` (${p.year_range})` : '') +
@@ -689,7 +694,11 @@ function cardHTML(p) {
 function shareProduct(id) {
   const p = parts.find(x => x.id === id);
   if (!p) return;
-  const url = window.location.origin + window.location.pathname + "?product=" + encodeURIComponent(p.id);
+
+  // FIX: Protect URL for local testing
+  let baseOrigin = window.location.origin;
+  if (baseOrigin === "null" || !baseOrigin) baseOrigin = "https://jasur-al-naseem.vercel.app";
+  const url = baseOrigin + window.location.pathname + "?product=" + encodeURIComponent(p.id);
 
   if (navigator.share) {
     navigator.share({
@@ -698,8 +707,19 @@ function shareProduct(id) {
       url: url
     }).catch(err => console.log('Share canceled'));
   } else {
-    navigator.clipboard.writeText(url);
-    alert("Product link copied!");
+    // FIX: Professional Fallback (Works on Local PC too)
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(url);
+      alert("Product link copied!");
+    } else {
+      const textArea = document.createElement("textarea");
+      textArea.value = url;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+      alert("Product link copied (Local Mode)!");
+    }
   }
 }
 
@@ -744,6 +764,9 @@ function renderGrid(withExit = false) {
 
     grid.querySelectorAll('.carousel').forEach(el => new Carousel(el));
     observeCards();
+    
+    // FIX: Highlight Check strictly runs after injection
+    highlightProduct();
   };
 
   if (withExit) {
@@ -792,17 +815,19 @@ fetchParts();
 /* ════════════════════════════════════════
    HIGHLIGHT PRODUCT UX
 ════════════════════════════════════════ */
-const params = new URLSearchParams(window.location.search);
-const highlightID = params.get("product");
+function highlightProduct() {
+  const params = new URLSearchParams(window.location.search);
+  const highlightID = params.get("product");
 
-if(highlightID){
-  setTimeout(()=>{
-    const el = document.querySelector(`[data-id="${highlightID}"]`);
-    if(el){
-      el.scrollIntoView({behavior:"smooth", block:"center"});
-      el.style.boxShadow="0 0 0 2px #22c55e";
-    }
-  },800);
+  if(highlightID){
+    setTimeout(()=>{
+      const el = document.querySelector(`[data-id="${highlightID}"]`);
+      if(el){
+        el.scrollIntoView({behavior:"smooth", block:"center"});
+        el.style.boxShadow="0 0 0 2px #22c55e";
+      }
+    },800);
+  }
 }
 
 </script>
